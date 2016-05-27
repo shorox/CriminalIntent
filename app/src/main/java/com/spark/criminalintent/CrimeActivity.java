@@ -13,12 +13,12 @@ public class CrimeActivity extends FragmentActivity {
         setContentView(R.layout.activity_crime);
 
         FragmentManager fm = getSupportFragmentManager();
-        Fragment fragment = fm.findFragmentById(R.id.fragmentContainer);
+        Fragment fragment = fm.findFragmentById(R.id.fragment_container);
 
         if(fragment == null){
             fragment = new CrimeFragment();
             fm.beginTransaction()
-                    .add(R.id.fragmentContainer, fragment)
+                    .add(R.id.fragment_container, fragment)
                     .commit();
         }
     }

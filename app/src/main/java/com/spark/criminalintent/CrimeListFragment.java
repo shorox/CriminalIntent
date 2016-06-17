@@ -12,7 +12,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.List;
@@ -40,11 +42,25 @@ public class CrimeListFragment extends Fragment {
         mCrimeRecyclerView = (RecyclerView) view.findViewById(R.id.crime_recycler_view);
         mCrimeRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
+        LinearLayout mHelpBox = (LinearLayout) view.findViewById(R.id.no_crime_view);
+
         if (savedInstanceState != null) {
             mSubtitleVisible = savedInstanceState.getBoolean(SAVED_SUBTITLE_VISIBILE);
         }
 
         updateUI();
+
+        if(CrimeLab.get(getActivity()).getCrimes().size() == 0) {
+            Button createCrimeButton = (Button) mHelpBox.findViewById(R.id.create_crime_button);
+            createCrimeButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    createNewCrime();
+                }
+            });
+        } else {
+            mHelpBox.setVisibility(View.GONE);
+        }
 
         return view;
     }
@@ -118,6 +134,13 @@ public class CrimeListFragment extends Fragment {
         }
 
         updateSubtitle();
+    }
+
+    private void createNewCrime(){
+        Crime crime = new Crime();
+        CrimeLab.get(getActivity()).addCrime(crime);
+        Intent intent = CrimePagerActivity.newIntent(getActivity(), crime.getId());
+        startActivity(intent);
     }
 
     public class CrimeHolder extends RecyclerView.ViewHolder implements View.OnClickListener{

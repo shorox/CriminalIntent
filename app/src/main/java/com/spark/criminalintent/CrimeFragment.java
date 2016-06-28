@@ -35,7 +35,8 @@ public class CrimeFragment extends Fragment {
     private static final String DIALOG_DATE = "DialogDate";
 
     private static final int REQUEST_DATE = 0;
-    public static final int REQUEST_CONTACT = 1;
+    private static final int REQUEST_CONTACT = 1;
+    private static final int REQUEST_CALL = 2;
 
     private Crime mCrime;
     private EditText mTitleField;
@@ -43,6 +44,7 @@ public class CrimeFragment extends Fragment {
     private CheckBox mSolvedCheckBox;
     private Button mSuspectButton;
     private Button mReportButton;
+    private Button mCallButton;
 
     public static CrimeFragment newInstance(UUID crimeId){
         Bundle args = new Bundle();
@@ -155,7 +157,7 @@ public class CrimeFragment extends Fragment {
             }
         });
 
-        if(mCrime.getSuspect() != null){
+        if (mCrime.getSuspect() != null) {
             mSuspectButton.setText(mCrime.getSuspect());
         }
 
@@ -163,6 +165,15 @@ public class CrimeFragment extends Fragment {
         if (packageManager.resolveActivity(pickContact, PackageManager.MATCH_DEFAULT_ONLY) == null) {
             mSuspectButton.setEnabled(false);
         }
+
+        mCallButton = (Button) v.findViewById(R.id.crime_call);
+        mCallButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + mCrime.getPhone()));
+                startActivity(i);
+            }
+        });
 
         return v;
     }
@@ -177,20 +188,36 @@ public class CrimeFragment extends Fragment {
             Date date = (Date) data.getSerializableExtra(DatePickerFragment.EXTRA_DATE);
             mCrime.setDate(date);
             updateDate();
-        }else if(requestCode == REQUEST_CONTACT && data != null){
+        } else if (requestCode == REQUEST_CONTACT && data != null) {
             Uri contactUri = data.getData();
             // Определение полей, значения которых должны быть возвращены запросом.
-            String[] queryFields = new String[]{ContactsContract.Contacts.DISPLAY_NAME};
+            String[] queryFields = new String[]{ContactsContract.Contacts._ID, ContactsContract.Contacts.DISPLAY_NAME};
             // Выполнение запроса - contactUri здесь выполняет функция условия "where"
             Cursor c = getActivity().getContentResolver().query(contactUri, queryFields, null, null, null);
 
-            try{
+            try {
                 // Проверка получение результатов
                 c.moveToFirst();
-                String suspect = c.getString(0);
+                String id = c.getString(c.getColumnIndex(ContactsContract.Contacts._ID));
+                String suspect = c.getString(c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
                 mCrime.setSuspect(suspect);
                 mSuspectButton.setText(suspect);
-            }finally{
+
+                Uri phoneUri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
+                String[] columns = new String[]{ContactsContract.CommonDataKinds.Phone.NUMBER};
+                String whereClause = ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ? ";
+                String[] whereArgs = new String[]{id};
+
+                Cursor c2 = getActivity().getContentResolver().query(phoneUri, columns, whereClause, whereArgs, null);
+
+                try {
+                    c2.moveToFirst();
+                    String phoneNumber = c2.getString(c2.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                    mCrime.setPhone(phoneNumber);
+                } finally {
+                    c2.close();
+                }
+            } finally {
                 c.close();
             }
         }

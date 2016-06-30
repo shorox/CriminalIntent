@@ -1,0 +1,6 @@
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+           android:id="@+id/dialog_photo_photo_crime"
+           android:layout_width="match_parent"
+           android:layout_height="match_parent">
+
+</ImageView>

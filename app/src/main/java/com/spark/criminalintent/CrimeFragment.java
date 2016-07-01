@@ -20,6 +20,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -204,15 +205,22 @@ public class CrimeFragment extends Fragment {
         });
 
         mPhotoView = (ImageView) v.findViewById(R.id.crime_photo);
-        updatePhotoView();
+        updatePhotoView(mPhotoView);
 
         mPhotoView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(mPhotoFile != null && mPhotoFile.exists()){
+                if (mPhotoFile != null && mPhotoFile.exists()) {
                     FragmentManager fm = getFragmentManager();
                     PhotoFragment.newInstance(mPhotoFile).show(fm, DIALOG_PHOTO);
                 }
+            }
+        });
+
+        mPhotoView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                updatePhotoView(mPhotoView);
             }
         });
 
@@ -262,7 +270,7 @@ public class CrimeFragment extends Fragment {
                 c.close();
             }
         } else if(requestCode == REQUEST_PHOTO){
-            updatePhotoView();
+            updatePhotoView(mPhotoView);
         }
     }
 
@@ -293,11 +301,16 @@ public class CrimeFragment extends Fragment {
         return report;
     }
 
-    private void updatePhotoView(){
+    private void updatePhotoView(ImageView container){
         if(mPhotoFile == null || !mPhotoFile.exists()){
             mPhotoView.setImageDrawable(null);
         }else{
-            Bitmap bitmap = PictureUtils.getScaledBitmap(mPhotoFile.getPath(), getActivity());
+            Bitmap bitmap;
+            if(container != null) {
+                bitmap = PictureUtils.getScaledBitmap(mPhotoFile.getPath(), getActivity());
+            }else{
+                bitmap = PictureUtils.getScaledBitmap(mPhotoFile.getPath(), container);
+            }
             mPhotoView.setImageBitmap(bitmap);
         }
     }

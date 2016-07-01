@@ -4,11 +4,17 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
+import android.view.View;
 
 /**
  * Created by sharov on 29.06.2016.
  */
 public class PictureUtils {
+
+    public static Bitmap getScaledBitmap(String path, View container){
+        return getScaledBitmap(path, container.getWidth(), container.getHeight());
+    }
+
     public static Bitmap getScaledBitmap(String path, Activity activity){
         Point size = new Point();
         activity.getWindowManager().getDefaultDisplay().getSize(size);

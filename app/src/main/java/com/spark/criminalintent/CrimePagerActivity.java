@@ -1,5 +1,6 @@
 package com.spark.criminalintent;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -15,7 +16,7 @@ import java.util.UUID;
 /**
  * Created by sharov on 01.06.2016.
  */
-public class CrimePagerActivity extends AppCompatActivity {
+public class CrimePagerActivity extends AppCompatActivity implements CrimeFragment.Callbacks{
     private static final String EXTRA_CRIME_ID = "com.spark.criminalintent.crime_id";
 
     private ViewPager mViewPager;
@@ -57,5 +58,15 @@ public class CrimePagerActivity extends AppCompatActivity {
                 break;
             }
         }
+    }
+
+    @Override
+    public void onCrimeUpdated(Crime crime) {
+
+    }
+
+    @Override
+    public void onCrimeDelete(Activity activity) {
+        activity.finish();
     }
 }

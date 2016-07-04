@@ -55,6 +55,15 @@ public class CrimeFragment extends Fragment {
     private Button mCallButton;
     private ImageButton mPhotoButton;
     private ImageView mPhotoView;
+    private Callbacks mCallbacks;
+
+    /**
+     * Необходимый интерфейс для активности-хоста.
+     */
+    public interface Callbacks{
+        void onCrimeUpdated(Crime crime);
+        void onCrimeDelete(Activity activity);
+    }
 
     public static CrimeFragment newInstance(UUID crimeId){
         Bundle args = new Bundle();
@@ -63,6 +72,12 @@ public class CrimeFragment extends Fragment {
         CrimeFragment fragment = new CrimeFragment();
         fragment.setArguments(args);
         return fragment;
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        mCallbacks = (Callbacks) activity;
     }
 
     @Override
@@ -76,7 +91,8 @@ public class CrimeFragment extends Fragment {
         switch (item.getItemId()) {
             case R.id.menu_item_del_crime:
                 CrimeLab.get(getActivity()).deleteCrime(mCrime);
-                getActivity().finish();
+                mCallbacks.onCrimeDelete(getActivity());
+                updateCrime();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -102,6 +118,12 @@ public class CrimeFragment extends Fragment {
     }
 
     @Override
+    public void onDetach() {
+        super.onDetach();
+        mCallbacks = null;
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_crime, container, false);
 
@@ -116,6 +138,7 @@ public class CrimeFragment extends Fragment {
             @Override
             public void onTextChanged(CharSequence c, int start, int before, int count) {
                 mCrime.setTitle(c.toString());
+                updateCrime();
             }
 
             @Override
@@ -142,6 +165,7 @@ public class CrimeFragment extends Fragment {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 mCrime.setSolved(isChecked);
+                updateCrime();
             }
         });
 
@@ -236,6 +260,7 @@ public class CrimeFragment extends Fragment {
         if (requestCode == REQUEST_DATE) {
             Date date = (Date) data.getSerializableExtra(DatePickerFragment.EXTRA_DATE);
             mCrime.setDate(date);
+            updateCrime();
             updateDate();
         } else if (requestCode == REQUEST_CONTACT && data != null) {
             Uri contactUri = data.getData();
@@ -250,6 +275,7 @@ public class CrimeFragment extends Fragment {
                 String id = c.getString(c.getColumnIndex(ContactsContract.Contacts._ID));
                 String suspect = c.getString(c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
                 mCrime.setSuspect(suspect);
+                updateCrime();
                 mSuspectButton.setText(suspect);
 
                 Uri phoneUri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
@@ -270,8 +296,14 @@ public class CrimeFragment extends Fragment {
                 c.close();
             }
         } else if(requestCode == REQUEST_PHOTO){
+            updateCrime();
             updatePhotoView(mPhotoView);
         }
+    }
+
+    private void updateCrime(){
+        CrimeLab.get(getActivity()).updateCrime(mCrime);
+        mCallbacks.onCrimeUpdated(mCrime);
     }
 
     private void updateDate() {
